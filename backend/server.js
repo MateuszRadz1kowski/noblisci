@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get("/laureates", async (req, res) => {
+app.get("/api/allLaureatesBaseInfo", async (req, res) => {
 	try {
 		const db = getDB();
 
