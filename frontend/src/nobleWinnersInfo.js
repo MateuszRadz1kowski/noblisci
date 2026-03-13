@@ -10,7 +10,14 @@ import {
 	Divider,
 	Chip,
 	Link,
+	FormControl,
+	InputLabel,
+	MenuItem,
+	Select,
+	TextField,
+	Slider,
 } from "@mui/material";
+
 import { useEffect, useState } from "react";
 
 export default function NobleWinnersInfo() {
@@ -19,6 +26,11 @@ export default function NobleWinnersInfo() {
 	const [selectedLaureateId, setSelectedLaureateId] = useState(null);
 	const [selectedLaureateData, setSelectedLaureateData] = useState(null);
 
+	const [categoryFilter, setCategoryFilter] = useState("");
+	const [yearMinFilter, setYearMinFilter] = useState(1900);
+	const [yearMaxFilter, setYearMaxFilter] = useState(new Date().getFullYear());
+	const [surnameFilter, setSurnameFilter] = useState("");
+
 	const toggleDrawer = (newOpen, id) => () => {
 		setOpen(newOpen);
 		if (id) setSelectedLaureateId(id);
@@ -26,12 +38,17 @@ export default function NobleWinnersInfo() {
 
 	useEffect(() => {
 		const getData = async () => {
-			const response = await fetch(`/api/allLaureatesBaseInfo`);
+			const response = await fetch(
+				`/api/allLaureatesBaseInfo?category=${categoryFilter}&yearmin=${yearMinFilter}&yearmax=${yearMaxFilter}&surname=${surnameFilter}`,
+			);
+
 			const data = await response.json();
+			console.log(data);
 			setData(data);
 		};
+
 		getData();
-	}, []);
+	}, [categoryFilter, yearMinFilter, yearMaxFilter, surnameFilter]);
 
 	useEffect(() => {
 		if (!selectedLaureateId) return;
@@ -40,9 +57,12 @@ export default function NobleWinnersInfo() {
 			const response = await fetch(
 				`https://api.nobelprize.org/2.1/laureate/${selectedLaureateId}`,
 			);
+
 			const data = await response.json();
+
 			setSelectedLaureateData(data[0]);
 		};
+
 		getData();
 	}, [selectedLaureateId]);
 
@@ -58,8 +78,78 @@ export default function NobleWinnersInfo() {
 				Nobel Prize Laureates
 			</Typography>
 
+			<Box
+				sx={{
+					display: "grid",
+					gridTemplateColumns: "1fr 1fr 2fr",
+					gap: 3,
+					mb: 5,
+					background: "#2e2a4a",
+					p: 3,
+					borderRadius: 3,
+					boxShadow: 4,
+				}}
+			>
+				<FormControl fullWidth>
+					<InputLabel sx={{ color: "#c4b5fd" }}>Category</InputLabel>
+
+					<Select
+						value={categoryFilter}
+						label="Category"
+						onChange={(e) => setCategoryFilter(e.target.value)}
+						sx={{
+							background: "#433c6e",
+							color: "white",
+							borderRadius: 2,
+						}}
+					>
+						<MenuItem value="">All</MenuItem>
+						<MenuItem value={"Physics"}>Physics</MenuItem>
+						<MenuItem value={"Chemistry"}>Chemistry</MenuItem>
+						<MenuItem value={"Physiology or Medicine"}>
+							Physiology or Medicine
+						</MenuItem>
+						<MenuItem value={"Literature"}>Literature</MenuItem>
+						<MenuItem value={"Peace"}>Peace</MenuItem>
+						<MenuItem value={"Economic Sciences"}>Economic Sciences</MenuItem>
+					</Select>
+				</FormControl>
+
+				<TextField
+					label="Surname"
+					variant="outlined"
+					onChange={(e) => setSurnameFilter(e.target.value)}
+					sx={{
+						background: "#433c6e",
+						borderRadius: 2,
+						input: { color: "white" },
+						label: { color: "#c4b5fd" },
+					}}
+				/>
+
+				<Box>
+					<Typography color="white" mb={1}>
+						Year range: {yearMinFilter} - {yearMaxFilter}
+					</Typography>
+
+					<Slider
+						value={[yearMinFilter, yearMaxFilter]}
+						onChangeCommitted={(e, newValue) => {
+							setYearMinFilter(newValue[0]);
+							setYearMaxFilter(newValue[1]);
+						}}
+						valueLabelDisplay="auto"
+						min={1900}
+						max={new Date().getFullYear()}
+						sx={{ color: "#7c3aed" }}
+					/>
+				</Box>
+			</Box>
+
+			{/* CARDS */}
+
 			<Grid container spacing={6}>
-				{data?.map((person, index) => (
+				{data?.map((person) => (
 					<Grid item xs={12} sm={6} md={4} lg={3} key={person.id}>
 						<Card
 							sx={{
@@ -95,7 +185,7 @@ export default function NobleWinnersInfo() {
 									{person?.prizes?.[0]?.category || "Unknown"}
 								</Typography>
 
-								<Typography variant="body2" color="white" sx={{ mt: 1 }}>
+								<Typography variant="body2" sx={{ mt: 1 }}>
 									{person?.prizes?.[0]?.motivation || "Unknown"}
 								</Typography>
 							</CardContent>
@@ -113,6 +203,8 @@ export default function NobleWinnersInfo() {
 					</Grid>
 				))}
 			</Grid>
+
+			{/* DRAWER */}
 
 			<Drawer open={open} onClose={toggleDrawer(false)} anchor="right">
 				<Box
@@ -132,35 +224,40 @@ export default function NobleWinnersInfo() {
 
 							<Chip
 								label={selectedLaureateData?.gender || "Unknown"}
-								sx={{ mt: 1, background: "#7c3aed", color: "white" }}
+								sx={{
+									mt: 1,
+									background: "#7c3aed",
+									color: "white",
+								}}
 							/>
 
 							<Divider sx={{ my: 2, borderColor: "#a78bfa" }} />
 
 							<Typography variant="h6">Birth</Typography>
+
 							<Typography>
 								Date: {selectedLaureateData?.birth?.date || "Unknown"}
 							</Typography>
+
 							<Typography>
 								City:{" "}
 								{selectedLaureateData?.birth?.place?.city?.en || "Unknown"}
 							</Typography>
+
 							<Typography>
 								Country:{" "}
 								{selectedLaureateData?.birth?.place?.countryNow?.en ||
 									"Unknown"}
 							</Typography>
-							<Typography>
-								Continent:{" "}
-								{selectedLaureateData?.birth?.place?.continent?.en || "Unknown"}
-							</Typography>
 
 							<Divider sx={{ my: 2, borderColor: "#a78bfa" }} />
 
 							<Typography variant="h6">Death</Typography>
+
 							<Typography>
 								Date: {selectedLaureateData?.death?.date || "Unknown"}
 							</Typography>
+
 							<Typography>
 								Place:{" "}
 								{selectedLaureateData?.death?.place?.locationString?.en ||
@@ -170,24 +267,28 @@ export default function NobleWinnersInfo() {
 							<Divider sx={{ my: 2, borderColor: "#a78bfa" }} />
 
 							<Typography variant="h6">Nobel Prize</Typography>
+
 							{selectedLaureateData?.nobelPrizes?.map((prize, i) => (
 								<Box key={i} mb={2}>
 									<Chip
 										label={`${prize?.awardYear} ${prize?.category?.en}`}
-										sx={{ background: "#06b6d4", color: "white", mb: 1 }}
+										sx={{
+											background: "#06b6d4",
+											color: "white",
+											mb: 1,
+										}}
 									/>
+
 									<Typography>
 										{prize?.categoryFullName?.en || "Unknown"}
 									</Typography>
+
 									<Typography variant="body2">
 										Motivation: {prize?.motivation?.en || "Unknown"}
 									</Typography>
+
 									<Typography variant="body2">
 										Prize amount: {prize?.prizeAmount || "Unknown"}
-									</Typography>
-									<Typography variant="body2">
-										Affiliation:{" "}
-										{prize?.affiliations?.[0]?.name?.en || "Unknown"}
 									</Typography>
 								</Box>
 							))}
@@ -195,6 +296,7 @@ export default function NobleWinnersInfo() {
 							<Divider sx={{ my: 2, borderColor: "#a78bfa" }} />
 
 							<Typography variant="h6">Links</Typography>
+
 							<Box display="flex" flexDirection="column">
 								<Link
 									href={selectedLaureateData?.wikipedia?.english || "#"}
@@ -203,6 +305,7 @@ export default function NobleWinnersInfo() {
 								>
 									Wikipedia
 								</Link>
+
 								<Link
 									href={selectedLaureateData?.links?.[1]?.href || "#"}
 									target="_blank"

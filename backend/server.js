@@ -13,7 +13,32 @@ app.get("/api/allLaureatesBaseInfo", async (req, res) => {
 	try {
 		const db = getDB();
 
-		const data = await db.collection("noble").find({}).toArray();
+		const filter = {};
+
+		if (req.query.category) {
+			filter["prizes.category"] = req.query.category.toLowerCase;
+		}
+
+		if (req.query.surname) {
+			filter["surname"] = {
+				$regex: req.query.surname,
+				$options: "i",
+			};
+		}
+
+		if (req.query.yearmin || req.query.yearmax) {
+			filter["prizes.year"] = {};
+
+			if (req.query.yearmin) {
+				filter["prizes.year"].$gte = req.query.yearmin;
+			}
+
+			if (req.query.yearmax) {
+				filter["prizes.year"].$lte = req.query.yearmax;
+			}
+		}
+
+		const data = await db.collection("noble").find(filter).toArray();
 
 		res.json(data);
 	} catch (error) {
