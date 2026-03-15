@@ -158,13 +158,6 @@ export default function LeafletMap() {
 					);
 				})}
 			</MapContainer>
-			<button
-				onClick={() => {
-					console.log(countryObj);
-				}}
-			>
-				Log Country Object
-			</button>
 		</div>
 	);
 }

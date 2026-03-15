@@ -46,6 +46,20 @@ app.get("/api/allLaureatesBaseInfo", async (req, res) => {
 	}
 });
 
+app.get("/api/LaureateInfo/:id", async (req, res) => {
+	try {
+		const db = getDB();
+
+		const filter = { id: req.params.id };
+
+		const data = await db.collection("noble").find(filter).toArray();
+
+		res.json(data);
+	} catch (error) {
+		res.status(500).json({ error: "Error fetching data" });
+	}
+});
+
 const startServer = async () => {
 	await connectDB();
 
