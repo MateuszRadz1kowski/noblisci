@@ -10,31 +10,35 @@ import {
 	ResponsiveContainer,
 	LineChart,
 	Line,
+	PieChart,
+	Pie,
+	Cell,
 } from "recharts";
 
-let data = [
-	{
-		name: "Page A",
-		pv: 4000,
-	},
-	{
-		name: "Page B",
-		pv: 3000,
-	},
-	{
-		name: "Page C",
-		pv: 2000,
-	},
+const COLORS = [
+	"#6366f1",
+	"#22c55e",
+	"#f59e0b",
+	"#ef4444",
+	"#3b82f6",
+	"#8b5cf6",
+	"#10b981",
+	"#f97316",
+	"#ec4899",
+	"#14b8a6",
 ];
 export default function Charts() {
 	const [dataBarChart, setDataBarChart] = useState([]);
 	const [dataLineChart, setDataLineChart] = useState([]);
+	const [dataPieChart, setDataPieChart] = useState([]);
 
 	useEffect(() => {
 		const getData = async () => {
 			const response = await fetch(`/api/allLaureatesBaseInfo`);
 			const data = await response.json();
-
+			const responsePie = await fetch(`/api/stats/top-countries`);
+			const pieData = await responsePie.json();
+			setDataPieChart(pieData);
 			const categories = {};
 
 			const perYear = {};
@@ -116,6 +120,28 @@ export default function Charts() {
 
 					<Line type="monotone" dataKey="iloscLaureatow" stroke="#6366f1" />
 				</LineChart>
+
+				<PieChart>
+					<Tooltip />
+					<Legend />
+
+					<Pie
+						data={dataPieChart}
+						dataKey="iloscLaureatow"
+						nameKey="country"
+						cx="50%"
+						cy="50%"
+						outerRadius={120}
+						label
+					>
+						{dataPieChart.map((entry, index) => (
+							<Cell
+								key={`cell-${index}`}
+								fill={COLORS[index % COLORS.length]}
+							/>
+						))}
+					</Pie>
+				</PieChart>
 			</ResponsiveContainer>
 		</div>
 	);

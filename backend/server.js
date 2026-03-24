@@ -60,6 +60,41 @@ app.get("/api/LaureateInfo/:id", async (req, res) => {
 	}
 });
 
+app.get("/api/stats/top-countries", async (req, res) => {
+	try {
+		const db = getDB();
+
+		const data = await db
+			.collection("noble")
+			.aggregate([
+				{
+					$group: {
+						_id: "$bornCountryCode",
+						iloscLaureatow: { $sum: 1 },
+					},
+				},
+				{
+					$sort: { iloscLaureatow: -1 },
+				},
+				{
+					$limit: 10,
+				},
+				{
+					$project: {
+						_id: 0,
+						country: "$_id",
+						iloscLaureatow: 1,
+					},
+				},
+			])
+			.toArray();
+
+		res.json(data);
+	} catch (error) {
+		res.status(500).json({ error: "Error fetching stats" });
+	}
+});
+
 const startServer = async () => {
 	await connectDB();
 
